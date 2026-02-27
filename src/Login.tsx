@@ -36,8 +36,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     setLoading(true)
 
     try {
-      await signInWithGoogle()
-      onLoginSuccess(email, email)
+      const user = await signInWithGoogle()
+      onLoginSuccess(user.email || user.uid, user.email || user.uid)
     } catch (err: any) {
       setError(err.message || 'Failed to sign in with Google')
     } finally {
@@ -93,17 +93,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             />
           </div>
 
-          {error && <div GoogleLogin}
-          disabled={loading}
-          className="btn btn-google"
-        >
-          {loading ? 'Loading...' : '🔵 Sign in with Google'}
-        </button>
-
-        <div className="login-divider">or</div>
-
-        <button
-          onClick={handleclassName="error-message">{error}</div>}
+          {error && <div className="error-message">{error}</div>}
 
           <button
             type="submit"
@@ -113,6 +103,16 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             {loading ? 'Loading...' : isSigningUp ? 'Sign Up' : 'Sign In'}
           </button>
         </form>
+
+        <div className="login-divider">or</div>
+
+        <button
+          onClick={handleGoogleLogin}
+          disabled={loading}
+          className="btn btn-google"
+        >
+          {loading ? 'Loading...' : '🔵 Sign in with Google'}
+        </button>
 
         <div className="login-divider">or</div>
 
