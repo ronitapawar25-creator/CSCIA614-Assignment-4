@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, getDocs, writeBatch } from 'firebase/firestore'
+import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, getDocs, writeBatch, where } from 'firebase/firestore'
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously as fbSignInAnonymously, signInWithPopup, GoogleAuthProvider, signOut as fbSignOut, onAuthStateChanged, User } from 'firebase/auth'
 
 const firebaseConfig = {
@@ -56,8 +56,8 @@ export async function deleteAllItems() {
   }
 }
 
-export function subscribeToItems(callback: (items: any[]) => void) {
-  const q = query(collection(db, ITEMS_COLLECTION))
+export function subscribeToItems(userId: string, callback: (items: any[]) => void) {
+  const q = query(collection(db, ITEMS_COLLECTION), where('userId', '==', userId))
   return onSnapshot(q, (snapshot) => {
     const items = snapshot.docs.map((doc) => ({
       ...doc.data(),

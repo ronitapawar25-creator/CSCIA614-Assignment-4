@@ -10,16 +10,15 @@ type Item = {
   style: Style
   createdAt: number
   user: string
+  userId: string
 }
 
 export default function App() {
   const [items, setItems] = useState<Item[]>([])
   const [text, setText] = useState('')
   const [user, setUser] = useState('')
+  const [userId, setUserId] = useState('')
   const [sortMode, setSortMode] = useState<'importance' | 'chrono' | 'user'>('chrono')
-  const [newUserInput, setNewUserInput] = useState('')
-  const [previousUsers, setPreviousUsers] = useState<string[]>([])
-  const [showUserDropdown, setShowUserDropdown] = useState(false)
   const [showStyleDropdown, setShowStyleDropdown] = useState<string | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userEmail, setUserEmail] = useState('')
@@ -31,8 +30,8 @@ export default function App() {
       if (authUser) {
         setIsAuthenticated(true)
         setUserEmail(authUser.email || authUser.uid)
+        setUserId(authUser.uid)
         setUser(authUser.email || `Guest-${authUser.uid.slice(0, 8)}`)
-        localStorage.setItem('shopping_user', authUser.email || `Guest-${authUser.uid.slice(0, 8)}`)
         setAuthLoading(false)
       } else {
         setIsAuthenticated(false)
@@ -44,21 +43,15 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    if (!isAuthenticated) return
+    if (!isAuthenticated || !userId) return
 
-    // Load previous users from localStorage
-    const saved = localStorage.getItem('previous_users')
-    if (saved) {
-      setPreviousUsers(JSON.parse(saved))
-    }
-
-    // Subscribe to Firebase Firestore real-time updates
-    const unsubscribe = subscribeToItems((items) => {
+    // Subscribe to Firebase Firestore real-time updates (filtered by user)
+    const unsubscribe = subscribeToItems(userId, (items) => {
       setItems(items)
     })
 
     return () => unsubscribe()
-  }, [isAuthenticated])
+  }, [isAuthenticated, userId])
 
   function handleLoginSuccess(name: string, email: string) {
     setUser(name)
@@ -89,7 +82,7 @@ export default function App() {
   function addItem(e?: React.FormEvent) {
     e?.preventDefault()
     if (!text.trim()) return
-    const item = { text: text.trim(), style: 'cool' as Style, createdAt: Date.now(), user }
+    const item = { text: text.trim(), style: 'cool' as Style, createdAt: Date.now(), user, userId }
     console.log('Adding item:', item)
     fbAddItem(item)
       .then(() => {
@@ -151,24 +144,6 @@ export default function App() {
     })
   }
 
-  function changeUserFromInput() {
-    if (newUserInput.trim()) {
-      setUser(newUserInput.trim())
-      localStorage.setItem('shopping_user', newUserInput.trim())
-      const updated = Array.from(new Set([...previousUsers, newUserInput.trim()]))
-      setPreviousUsers(updated)
-      localStorage.setItem('previous_users', JSON.stringify(updated))
-      setNewUserInput('')
-      setShowUserDropdown(false)
-    }
-  }
-
-  function switchUser(selectedUser: string) {
-    setUser(selectedUser)
-    localStorage.setItem('shopping_user', selectedUser)
-    setShowUserDropdown(false)
-  }
-
   function saveToLocal() {
     localStorage.setItem('shopping_items', JSON.stringify(items))
     alert('List saved to local storage!')
@@ -209,29 +184,6 @@ export default function App() {
         <div className="meta">
           Logged in as <strong>{user}</strong>
           <button onClick={handleLogout} className="logout-btn">Sign Out</button>
-          <div className="user-selector">
-            <button onClick={() => setShowUserDropdown(!showUserDropdown)} className="user-btn">
-              Change User ▼
-            </button>
-            {showUserDropdown && (
-              <div className="user-dropdown">
-                <input
-                  type="text"
-                  value={newUserInput}
-                  onChange={(e) => setNewUserInput(e.target.value)}
-                  placeholder="New user name"
-                  onKeyDown={(e) => e.key === 'Enter' && changeUserFromInput()}
-                />
-                <button onClick={changeUserFromInput} className="confirm-btn">Set User</button>
-                {previousUsers.length > 0 && <div className="divider">Previous Users</div>}
-                {previousUsers.map((u) => (
-                  <button key={u} onClick={() => switchUser(u)} className="prev-user-btn">
-                    {u}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
       </header>
 

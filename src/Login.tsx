@@ -37,7 +37,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
 
     try {
       const user = await signInWithGoogle()
-      onLoginSuccess(user.email || user.uid, user.email || user.uid)
+      const userName = user.displayName || user.email || `Guest-${user.uid.slice(0, 8)}`
+      onLoginSuccess(userName, user.email || user.uid)
     } catch (err: any) {
       setError(err.message || 'Failed to sign in with Google')
     } finally {
