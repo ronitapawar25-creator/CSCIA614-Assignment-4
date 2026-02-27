@@ -104,7 +104,8 @@ export async function signOut() {
 }
 
 export function onAuthStateChange(callback: (user: User | null) => void) {
- 
+  return onAuthStateChanged(auth, callback)
+}
 
 export async function signInWithGoogle() {
   try {
@@ -113,5 +114,4 @@ export async function signInWithGoogle() {
   } catch (err: any) {
     throw new Error(err.message)
   }
-} return onAuthStateChanged(auth, callback)
 }
