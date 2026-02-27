@@ -80,6 +80,9 @@ footer { margin-top:16px; color:#666; text-align:center }
 .btn-secondary { background:#444; color:#e0e0e0; width:100%; box-shadow:0 2px 8px rgba(0, 0, 0, 0.2); }
 .btn-secondary:hover:not(:disabled) { background:#555; box-shadow:0 4px 12px rgba(0, 0, 0, 0.3); }
 .btn-secondary:disabled { opacity:0.6; cursor:not-allowed; }
+.btn-google { background:#4285f4; color:white; width:100%; box-shadow:0 2px 8px rgba(66, 133, 244, 0.3); font-weight:500; }
+.btn-google:hover:not(:disabled) { background:#357ae8; box-shadow:0 4px 12px rgba(66, 133, 244, 0.4); }
+.btn-google:disabled { opacity:0.6; cursor:not-allowed; }
 .error-message { background:rgba(220, 38, 38, 0.2); border:1px solid #dc2626; color:#ff6b6b; padding:12px; border-radius:8px; font-size:13px; margin-bottom:8px; }
 .login-divider { text-align:center; color:#666; margin:24px 0; position:relative; }
 .login-divider::before { content:''; position:absolute; left:0; top:50%; width:100%; height:1px; background:linear-gradient(90deg, transparent, rgba(100,100,100,0.5), transparent); }

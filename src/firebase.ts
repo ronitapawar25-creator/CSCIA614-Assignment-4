@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app'
 import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, getDocs, writeBatch } from 'firebase/firestore'
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously as fbSignInAnonymously, signOut as fbSignOut, onAuthStateChanged, User } from 'firebase/auth'
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously as fbSignInAnonymously, signInWithPopup, GoogleAuthProvider, signOut as fbSignOut, onAuthStateChanged, User } from 'firebase/auth'
 
 const firebaseConfig = {
   apiKey: 'AIzaSyC-i6CYcva5mzsBOxyclW6hx67E_rNCep0',
@@ -14,6 +14,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 export const db = getFirestore(app)
 export const auth = getAuth(app)
+const googleProvider = new GoogleAuthProvider()
 
 export const ITEMS_COLLECTION = 'ShoppingList'
 
@@ -103,5 +104,14 @@ export async function signOut() {
 }
 
 export function onAuthStateChange(callback: (user: User | null) => void) {
-  return onAuthStateChanged(auth, callback)
+ 
+
+export async function signInWithGoogle() {
+  try {
+    const userCredential = await signInWithPopup(auth, googleProvider)
+    return userCredential.user
+  } catch (err: any) {
+    throw new Error(err.message)
+  }
+} return onAuthStateChanged(auth, callback)
 }

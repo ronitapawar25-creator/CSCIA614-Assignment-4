@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { signUp, signIn, signInAnonymously } from './firebase'
+import { signUp, signIn, signInAnonymously, signInWithGoogle } from './firebase'
 
 type LoginProps = {
   onLoginSuccess: (userId: string, email: string) => void
@@ -26,6 +26,20 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       onLoginSuccess(email, email)
     } catch (err: any) {
       setError(err.message || 'Authentication failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleGoogleLogin() {
+    setError('')
+    setLoading(true)
+
+    try {
+      await signInWithGoogle()
+      onLoginSuccess(email, email)
+    } catch (err: any) {
+      setError(err.message || 'Failed to sign in with Google')
     } finally {
       setLoading(false)
     }
@@ -79,7 +93,17 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             />
           </div>
 
-          {error && <div className="error-message">{error}</div>}
+          {error && <div GoogleLogin}
+          disabled={loading}
+          className="btn btn-google"
+        >
+          {loading ? 'Loading...' : '🔵 Sign in with Google'}
+        </button>
+
+        <div className="login-divider">or</div>
+
+        <button
+          onClick={handleclassName="error-message">{error}</div>}
 
           <button
             type="submit"
