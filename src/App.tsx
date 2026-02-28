@@ -140,16 +140,15 @@ export default function App() {
       alert('Only users who logged in with Gmail can delete the entire list')
       return
     }
-    const userItems = items.filter(item => item.userId === userId)
-    if (userItems.length === 0) {
-      alert('You have no items to delete')
+    if (items.length === 0) {
+      alert('No items to delete')
       return
     }
-    if (window.confirm('Delete all YOUR items?')) {
-      console.log('Deleting all user items')
+    if (window.confirm('Delete ALL items from all users? This action cannot be undone.')) {
+      console.log('Deleting all items')
       // Log the deletion
       logDeletion(userId, user)
-      userItems.forEach((item) => {
+      items.forEach((item) => {
         fbDeleteItem(item.id).catch((err) => {
           console.error('Error deleting item:', err)
         })
