@@ -55,7 +55,11 @@ header h1 { color:#fff; margin:0 }
 .style-option { width:100%; padding:12px 16px; background:none; border:none; text-align:left; cursor:pointer; font-size:13px; color:#e0e0e0; transition:0.2s; border-radius:0 }
 .style-option:hover { background:rgba(100, 100, 100, 0.3); }
 .delete-btn { padding:8px 10px; background:#dc2626; color:white; border:none; border-radius:8px; cursor:pointer; font-size:14px; line-height:1; box-shadow:0 2px 8px rgba(220, 38, 38, 0.3); transition:0.2s; }
-.delete-btn:hover { background:#b91c1c; box-shadow:0 4px 12px rgba(220, 38, 38, 0.4); }
+.delete-btn:hover:not(:disabled) { background:#b91c1c; box-shadow:0 4px 12px rgba(220, 38, 38, 0.4); }
+.delete-btn:disabled { background:#666; cursor:not-allowed; opacity:0.5; box-shadow:none; }
+.complete-btn:disabled { background:#666; cursor:not-allowed; opacity:0.5; box-shadow:none; }
+.style-btn:disabled { background:#666; cursor:not-allowed; opacity:0.5; box-shadow:none; }
+.item.readonly { opacity:0.8; }
 .item.cool { background:linear-gradient(90deg, #00ffff, #0088ff); border:2px solid #00ffff; box-shadow:0 0 10px rgba(0, 255, 255, 0.5); }
 .item.hot { background:linear-gradient(90deg, #ff3300, #ff6600); border:2px solid #ff3300; box-shadow:0 0 10px rgba(255, 51, 0, 0.5); }
 .item.complete { background:linear-gradient(90deg, #00ff00, #00cc00); border:2px solid #00ff00; box-shadow:0 0 10px rgba(0, 255, 0, 0.5); }

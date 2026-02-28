@@ -97,7 +97,7 @@ export default function App() {
   function deleteCompleted() {
     console.log('Deleting completed items')
     items.forEach((item) => {
-      if (item.style === 'complete') {
+      if (item.style === 'complete' && item.userId === userId) {
         fbDeleteItem(item.id).catch((err) => {
           console.error('Error deleting item:', err)
         })
@@ -107,6 +107,11 @@ export default function App() {
 
   function deleteItem(id: string, e: React.MouseEvent) {
     e.stopPropagation()
+    const item = items.find(i => i.id === id)
+    if (item && item.userId !== userId) {
+      alert("You can only delete your own items")
+      return
+    }
     console.log('Deleting item', id)
     fbDeleteItem(id).catch((err) => {
       console.error('Error deleting item:', err)
@@ -114,10 +119,17 @@ export default function App() {
   }
 
   function deleteAllList() {
-    if (window.confirm('Delete entire list?')) {
-      console.log('Deleting all items')
-      fbDeleteAllItems().catch((err) => {
-        console.error('Error deleting all items:', err)
+    const userItems = items.filter(item => item.userId === userId)
+    if (userItems.length === 0) {
+      alert('You have no items to delete')
+      return
+    }
+    if (window.confirm('Delete all YOUR items?')) {
+      console.log('Deleting all user items')
+      userItems.forEach((item) => {
+        fbDeleteItem(item.id).catch((err) => {
+          console.error('Error deleting item:', err)
+        })
       })
     }
   }
@@ -125,6 +137,10 @@ export default function App() {
   function toggleComplete(itemId: string) {
     const item = items.find(i => i.id === itemId)
     if (!item) return
+    if (item.userId !== userId) {
+      alert("You can only modify your own items")
+      return
+    }
     const newStyle = item.style === 'complete' ? 'cool' : 'complete'
     console.log('Toggling item', itemId, 'to', newStyle)
     fbUpdateItem(itemId, { style: newStyle }).then(() => {
@@ -135,6 +151,11 @@ export default function App() {
   }
 
   function setItemStyle(itemId: string, newStyle: Style) {
+    const item = items.find(i => i.id === itemId)
+    if (item && item.userId !== userId) {
+      alert("You can only modify your own items")
+      return
+    }
     console.log('Setting style for item', itemId, 'to', newStyle)
     fbUpdateItem(itemId, { style: newStyle }).then(() => {
       console.log('Item updated successfully')
@@ -203,42 +224,47 @@ export default function App() {
       </div>
 
       <ul className="items">
-        {sortedItems().map(item => (
-          <li key={item.id} className={`item ${item.style}`}>
-            <div className="item-content">
-              <div className="text">{item.text}</div>
-              <div className="meta">{new Date(item.createdAt).toLocaleTimeString()} • {item.user}</div>
-            </div>
-            <div className="item-buttons">
-              <button 
-                className="status-btn complete-btn"
-                onClick={() => toggleComplete(item.id)}
-                title={item.style === 'complete' ? 'Uncheck' : 'Mark as complete'}
-              >
-                ✓
-              </button>
-              <div className="style-dropdown-wrapper">
-                <button 
-                  className="style-btn"
-                  onClick={() => setShowStyleDropdown(showStyleDropdown === item.id ? null : item.id)}
-                >
-                  {item.style === 'cool' ? '❄️ Cool' : item.style === 'hot' ? '🔥 Hot' : '✓ Complete'} ▼
-                </button>
-                {showStyleDropdown === item.id && (
-                  <div className="style-dropdown">
-                    <button onClick={() => setItemStyle(item.id, 'cool')} className="style-option">
-                      ❄️ Cool
-                    </button>
-                    <button onClick={() => setItemStyle(item.id, 'hot')} className="style-option">
-                      🔥 Hot
-                    </button>
-                  </div>
-                )}
+        {sortedItems().map(item => {
+          const isOwner = item.userId === userId
+          return (
+            <li key={item.id} className={`item ${item.style}${isOwner ? '' : ' readonly'}`}>
+              <div className="item-content">
+                <div className="text">{item.text}</div>
+                <div className="meta">{new Date(item.createdAt).toLocaleTimeString()} • {item.user}{!isOwner ? ' (read-only)' : ''}</div>
               </div>
-              <button className="delete-btn" onClick={(e) => deleteItem(item.id, e)}>×</button>
-            </div>
-          </li>
-        ))}
+              <div className="item-buttons">
+                <button 
+                  className="status-btn complete-btn"
+                  onClick={() => toggleComplete(item.id)}
+                  title={isOwner ? (item.style === 'complete' ? 'Uncheck' : 'Mark as complete') : 'Read-only'}
+                  disabled={!isOwner}
+                >
+                  ✓
+                </button>
+                <div className="style-dropdown-wrapper">
+                  <button 
+                    className="style-btn"
+                    onClick={() => setShowStyleDropdown(showStyleDropdown === item.id ? null : item.id)}
+                    disabled={!isOwner}
+                  >
+                    {item.style === 'cool' ? '❄️ Cool' : item.style === 'hot' ? '🔥 Hot' : '✓ Complete'} ▼
+                  </button>
+                  {showStyleDropdown === item.id && isOwner && (
+                    <div className="style-dropdown">
+                      <button onClick={() => setItemStyle(item.id, 'cool')} className="style-option">
+                        ❄️ Cool
+                      </button>
+                      <button onClick={() => setItemStyle(item.id, 'hot')} className="style-option">
+                        🔥 Hot
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <button className="delete-btn" onClick={(e) => deleteItem(item.id, e)} disabled={!isOwner}>×</button>
+              </div>
+            </li>
+          )
+        })}
       </ul>
 
       <footer>

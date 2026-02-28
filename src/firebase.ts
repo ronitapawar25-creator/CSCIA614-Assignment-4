@@ -57,7 +57,7 @@ export async function deleteAllItems() {
 }
 
 export function subscribeToItems(userId: string, callback: (items: any[]) => void) {
-  const q = query(collection(db, ITEMS_COLLECTION), where('userId', '==', userId))
+  const q = query(collection(db, ITEMS_COLLECTION))
   return onSnapshot(q, (snapshot) => {
     const items = snapshot.docs.map((doc) => ({
       ...doc.data(),
