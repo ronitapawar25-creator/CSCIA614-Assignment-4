@@ -17,6 +17,39 @@ export const auth = getAuth(app)
 const googleProvider = new GoogleAuthProvider()
 
 export const ITEMS_COLLECTION = 'ShoppingList'
+export const DELETION_LOGS_COLLECTION = 'DeletionLogs'
+
+export async function logDeletion(userId: string, userName: string) {
+  try {
+    await addDoc(collection(db, DELETION_LOGS_COLLECTION), {
+      userId,
+      userName,
+      deletedAt: Date.now(),
+      timestamp: new Date().toLocaleString()
+    })
+  } catch (err) {
+    console.error('Failed to log deletion:', err)
+  }
+}
+
+export function subscribeToLatestDeletion(callback: (log: any | null) => void) {
+  const q = query(collection(db, DELETION_LOGS_COLLECTION))
+  return onSnapshot(q, (snapshot) => {
+    if (snapshot.empty) {
+      callback(null)
+      return
+    }
+    const logs = snapshot.docs.map((doc) => ({
+      ...doc.data(),
+      id: doc.id,
+    }))
+    // Get the latest deletion (most recent timestamp)
+    const latest = logs.reduce((max, current) => 
+      (current.deletedAt > max.deletedAt) ? current : max
+    )
+    callback(latest)
+  })
+}
 
 export async function addItem(item: any) {
   try {

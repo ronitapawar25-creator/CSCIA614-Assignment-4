@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { subscribeToItems, addItem as fbAddItem, updateItem as fbUpdateItem, deleteItem as fbDeleteItem, deleteAllItems as fbDeleteAllItems, onAuthStateChange, signOut } from './firebase'
+import { subscribeToItems, addItem as fbAddItem, updateItem as fbUpdateItem, deleteItem as fbDeleteItem, deleteAllItems as fbDeleteAllItems, onAuthStateChange, signOut, logDeletion, subscribeToLatestDeletion } from './firebase'
 import Login from './Login'
 
 type Style = 'cool' | 'complete' | 'hot'
@@ -23,6 +23,8 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userEmail, setUserEmail] = useState('')
   const [authLoading, setAuthLoading] = useState(true)
+  const [isGoogleUser, setIsGoogleUser] = useState(false)
+  const [lastDeletionLog, setLastDeletionLog] = useState<any>(null)
 
   useEffect(() => {
     // Check authentication state
@@ -32,9 +34,15 @@ export default function App() {
         setUserEmail(authUser.email || authUser.uid)
         setUserId(authUser.uid)
         setUser(authUser.email || `Guest-${authUser.uid.slice(0, 8)}`)
+        
+        // Check if user is Google authenticated
+        const isGoogle = authUser.providerData.some(profile => profile.providerId === 'google.com')
+        setIsGoogleUser(isGoogle)
+        
         setAuthLoading(false)
       } else {
         setIsAuthenticated(false)
+        setIsGoogleUser(false)
         setAuthLoading(false)
       }
     })
@@ -52,6 +60,15 @@ export default function App() {
 
     return () => unsubscribe()
   }, [isAuthenticated, userId])
+
+  useEffect(() => {
+    // Subscribe to deletion logs
+    const unsubscribe = subscribeToLatestDeletion((log) => {
+      setLastDeletionLog(log)
+    })
+
+    return () => unsubscribe()
+  }, [])
 
   function handleLoginSuccess(name: string, email: string) {
     setUser(name)
@@ -119,6 +136,10 @@ export default function App() {
   }
 
   function deleteAllList() {
+    if (!isGoogleUser) {
+      alert('Only users who logged in with Gmail can delete the entire list')
+      return
+    }
     const userItems = items.filter(item => item.userId === userId)
     if (userItems.length === 0) {
       alert('You have no items to delete')
@@ -126,6 +147,8 @@ export default function App() {
     }
     if (window.confirm('Delete all YOUR items?')) {
       console.log('Deleting all user items')
+      // Log the deletion
+      logDeletion(userId, user)
       userItems.forEach((item) => {
         fbDeleteItem(item.id).catch((err) => {
           console.error('Error deleting item:', err)
@@ -218,7 +241,14 @@ export default function App() {
         <button onClick={() => setSortMode('chrono')}>Sort by Chrono</button>
         <button onClick={() => setSortMode('user')}>Sort by User</button>
         <button onClick={deleteCompleted} className="danger">Delete Completed</button>
-        <button onClick={deleteAllList} className="danger">Delete All List</button>
+        <button 
+          onClick={deleteAllList} 
+          className="danger" 
+          disabled={!isGoogleUser}
+          title={isGoogleUser ? "Delete all your items" : "Only Gmail users can delete all items"}
+        >
+          Delete All List{!isGoogleUser ? ' (Gmail only)' : ''}
+        </button>
         <button onClick={saveToLocal} className="primary">Save List</button>
         <button onClick={loadFromLocal} className="primary">Load List</button>
       </div>
@@ -269,6 +299,11 @@ export default function App() {
 
       <footer>
         <small>Use buttons to set item status. ✓ = Complete, ❄️ = Cool, 🔥 = Hot</small>
+        {lastDeletionLog && (
+          <div className="deletion-log">
+            <small>Last deletion: {lastDeletionLog.userName} deleted all items at {lastDeletionLog.timestamp}</small>
+          </div>
+        )}
       </footer>
     </div>
   )
